@@ -33,7 +33,7 @@ class GameServer:
         
         # Game State
         self.state = "LOBBY" # LOBBY, COUNTDOWN, PLAYING, GAME_OVER
-        self.game_mode = "Normal" # Normal, Night, Solo
+        self.game_mode = "Normal" # Normal mode
         self.maze = []
         self.start_pos = [1, 1]
         self.end_pos = [1, 1]
@@ -113,7 +113,7 @@ class GameServer:
         elif msg_type == "ready":
             self.players[addr]['ready'] = msg.get("status", True)
             self.game_mode = msg.get("mode", self.game_mode)
-            self.log(f"Player {p_id} is ready. Mode: {self.game_mode}")
+            self.log(f"Player {p_id} is ready.")
             self.check_start_conditions()
 
         elif msg_type == "move" and self.state == "PLAYING":
@@ -132,6 +132,20 @@ class GameServer:
                         self.log(f"Player {p_id} reached the end!")
                         print("WINNER SET TO", p_id)
                         self.state = "GAME_OVER"
+        
+        elif msg_type == "home":
+
+            self.state = "LOBBY"
+
+            self.maze = []
+
+            self.replay_data = {}
+
+            self.winner_id = None
+
+            for p in self.players.values():
+                p["ready"] = False
+                p["pos"] = [1, 1]
 
     def check_start_conditions(self):
         if self.state != "LOBBY": return
