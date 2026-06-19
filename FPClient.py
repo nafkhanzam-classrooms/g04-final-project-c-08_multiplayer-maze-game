@@ -151,20 +151,7 @@ class MazeClient:
                 pygame.draw.circle(s, color, (cell_width//2, cell_height//2), cell_width//3)
                 self.screen.blit(s, p_rect.topleft)
 
-    def draw_night_mode_mask(self, my_player):
-        maze = self.server_state.get("maze")
-        if not maze or not my_player: return
 
-        cell_width = SCREEN_WIDTH // len(maze[0])
-        cell_height = SCREEN_HEIGHT // len(maze)
-        px, py = my_player['pos']
-        center = (px * cell_width + cell_width//2, py * cell_height + cell_height//2)
-
-        mask = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
-        mask.fill((0, 0, 0, 245)) # Deep fog
-        # Cutout circle
-        pygame.draw.circle(mask, (0, 0, 0, 0), center, cell_width * 3)
-        self.screen.blit(mask, (0, 0))
 
     def draw_lobby(self):
         self.screen.fill(BLACK)
@@ -229,9 +216,16 @@ class MazeClient:
                         elif event.key == pygame.K_RIGHT: self.send_data({"type": "move", "dx": 1, "dy": 0})
 
                 elif self.state == "GAME_OVER":
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
-                        self.state = "REPLAYING"
-                        self.replay_start_time = time.time()
+                        if event.type == pygame.KEYDOWN:
+
+                            if event.key == pygame.K_r:
+                                self.state = "REPLAYING"
+                                self.replay_start_time = time.time()
+
+                            elif event.key == pygame.K_h:
+                                self.send_data({
+                                "type": "home"
+                            })
 
             # --- RENDERING ---
             self.screen.fill(BLACK)
@@ -249,10 +243,12 @@ class MazeClient:
                 self.draw_maze()
                 players = self.server_state.get("players", {})
                 self.draw_players(players)
-                
+                """
                 if self.server_state.get("mode") == "Night":
                     my_p = players.get(str(self.my_id))
                     self.draw_night_mode_mask(my_p)
+                """
+                
                 
                 # UI Overlay
                 ui_text = self.small_font.render(f"Ping: {self.ping}ms | Mode: {self.server_state.get('mode')}", True, WHITE)
